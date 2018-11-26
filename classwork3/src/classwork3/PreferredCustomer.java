@@ -7,19 +7,20 @@ public class PreferredCustomer extends Customer{
 	private int spending;
 	private double discountAmount;
 	
-	//initiate a new customer
-	public PreferredCustomer(String customerNum, boolean inList) {
-		//super(customerNum, inList);
-		this.spending = 0;
-		this.discountLev = LEV[0][1];
-		this.discountAmount = 0.0;
+	public PreferredCustomer() {
+		spending = 0;
+		discountLev = 0;
+		discountAmount = 0.0;
 	}
-	
-	public PreferredCustomer(int spending) {
+	//initiate a new customer
+	public PreferredCustomer(String customerNum, boolean inList, int spending) {
+		super(customerNum, inList);
 		this.spending += spending;
 		this.discountLev = findDiscountLev(this.spending);
 		this.discountAmount = calcDiscountAmount(this.spending, this.discountLev);
 	}
+	
+
 	
 	private int findDiscountLev(int spending) {
 		int dicountLev = 0;
@@ -65,5 +66,11 @@ public class PreferredCustomer extends Customer{
 	public void setSpending(int spending) {
 		this.spending = spending;
 	}
-	
+	public String toString() {
+		String output = super.toString();
+		output += "Spending: "+ this.spending+ "\n";
+		output += "Discount Percentage: "+this.discountLev+"\n";
+		output += "Discount Amount: "+this.discountAmount+"\n";
+		return output;
+	}
 }

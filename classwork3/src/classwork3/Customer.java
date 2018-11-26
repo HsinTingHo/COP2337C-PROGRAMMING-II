@@ -3,10 +3,16 @@ package classwork3;
 public class Customer extends Person{
 	private String customerNum;
 	private boolean inList;
-	//machenism for accumulating customer number
+	//private static String[] customerNums;//static variables initialized only once, and they're shared between all instances
+	
 	public Customer() {
 		customerNum = "000-A";
 		inList = true;
+		customerNums.add(customerNum);
+	}
+	public Customer(String customerNum, boolean inList) {
+		this.customerNum = customerNum;
+		this.inList = inList;
 	}
 	public Customer(String name, String address, String phone, String customerNum, boolean inList) {
 		super(name, address, phone);
@@ -18,7 +24,9 @@ public class Customer extends Person{
 			System.out.println("Invalid customer number.");
 		}
 		this.inList = inList;
+		counter++;
 	}
+	
 	public String getCustomerNum() {
 		return this.customerNum;
 	}
