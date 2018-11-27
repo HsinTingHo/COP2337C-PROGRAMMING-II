@@ -5,16 +5,19 @@ import java.util.Map;
 import java.util.List;
 import java.awt.*;
 import javax.swing.*;
+//import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+
 import java.awt.event.*;
 import java.awt.event.ActionListener;
 
 
 
-public class CarDealer extends JFrame implements TableModelListener{
+public class CarDealer extends JFrame implements TableModelListener, TableCellRenderer{
 	int fullW = 1080;
 	int fullH = 720;
 	private List<Car> selectedCars = new ArrayList<Car>();
@@ -22,7 +25,7 @@ public class CarDealer extends JFrame implements TableModelListener{
 	private Map<String, Integer> carInfo = new HashMap<String, Integer>(); 
 	JLabel label;
 	JTextField tField;
-	
+	DefaultTableCellRenderer renderer;
 	JPanel leftP = new JPanel();
 	
 	public CarDealer() {
@@ -42,9 +45,10 @@ public class CarDealer extends JFrame implements TableModelListener{
 		
 		for(Map.Entry<String, Integer> car : carInfo.entrySet()) {
 			Car newCar = new Car(car.getKey(), car.getValue());
+			System.out.println(car.getKey() + car.getValue());
 			carOnSale.add(newCar);
 		}
-		System.out.println(carOnSale);		
+		System.out.println(carOnSale.get(1).getModel());		
 	}
 /*
  * Main window GUI components
@@ -63,22 +67,58 @@ public class CarDealer extends JFrame implements TableModelListener{
 		leftP.setBackground(Color.LIGHT_GRAY);
 		leftP.setSize(width, height);
 		
-
+		//create car model table
 		JTable t = new JTable(new CarTableModel());
-		//center the text in the table		
+		
+		
+		//center the header and the text in the table		
 		DefaultTableCellRenderer centerText = new DefaultTableCellRenderer();
 		centerText.setHorizontalAlignment(JLabel.CENTER);
 		t.setDefaultRenderer(String.class, centerText);
-		//allow mutable rows selection
+		renderer = (DefaultTableCellRenderer)t.getTableHeader().getDefaultRenderer();
+		renderer.setHorizontalAlignment(JLabel.CENTER);
+		renderer.setBackground(Color.YELLOW);
+		
+		//allow multiple rows selection
 		t.setRowSelectionAllowed(true);		
 		t.setColumnSelectionAllowed(false);
 		t.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION) ;
 		t.getModel().addTableModelListener(this);
 		//add table to JScrollPane so the header does not get cut off
 		leftP.add(new JScrollPane(t));
+		
+		
+		
 		leftP.setVisible(true);
 
 		return leftP;
+	}
+	
+	@Override
+	public void tableChanged(TableModelEvent e) {
+		int row = e.getFirstRow();//get the first row that changed
+		int column = e.getColumn();//returns the column for the event
+		String selectedModel;
+		TableModel model = (TableModel)e.getSource();
+		//if the check box is selected, add the item to the selectedCar list
+		if((boolean)model.getValueAt(row, column)) {
+			
+			selectedModel = (String) model.getValueAt(row, 0);
+			for(Car eachModel : carOnSale) {
+				
+			}
+			//selectedCars.add(e)
+		}
+		
+		Object data = model.getValueAt(row, column);
+		
+		//System.out.println(selectedModel);
+	}
+	@Override
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+			int row, int column) {
+		 
+		return renderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 	}
 /*
  * End of GUI components
@@ -116,12 +156,5 @@ public class CarDealer extends JFrame implements TableModelListener{
 	public static void main(String[] args){
 		CarDealer window1 = new CarDealer();
 	}
-	@Override
-	public void tableChanged(TableModelEvent e) {
-		int row = e.getFirstRow();//get the first row that changed
-		int column = e.getColumn();//returns the column for the event
-		TableModel model = (TableModel)e.getSource();
-		Object data = model.getValueAt(row, column);
-		System.out.println(data);
-	}
+	
 }
