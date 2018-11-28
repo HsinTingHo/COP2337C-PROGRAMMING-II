@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.Dimension;
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 //import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -25,6 +26,8 @@ public class CarDealer extends JFrame implements TableModelListener, TableCellRe
 	int leftPHeight = 720;
 	int carTableW = 540;
 	int carTableH = 300;
+	int tax;
+	int total;
 	private List<Car> selectedCars = new ArrayList<Car>();
 	private List<Car> carOnSale = new ArrayList<Car>();
 	private Map<String, Integer> carInfo = new HashMap<String, Integer>(); 
@@ -41,12 +44,17 @@ public class CarDealer extends JFrame implements TableModelListener, TableCellRe
 	
 	
 	//*** right panel
-	JPanel rightP = new JPanel();
+	JPanel rightP = new JPanel(new GridLayout(4,1));
 	JLabel nameLabel;
 	JLabel phoneLabel;
-	JLabel taxLabel;
-	JLabel totalLabel;
-
+	JLabel taxLabel = new JLabel("Tax: "+tax);
+	JLabel totalLabel = new JLabel("Total: "+total);
+	JPanel orderP = new JPanel(new GridLayout(4,1));
+	JPanel subOrdP = new JPanel(new GridLayout(3,1));
+	JPanel sumP = new JPanel(new GridLayout(3,1));
+	JPanel subP = new JPanel();
+	
+	
 	public CarDealer() {
 		/*
 		 * Main window GUI components
@@ -118,16 +126,33 @@ public class CarDealer extends JFrame implements TableModelListener, TableCellRe
 		JPanel exitP = new JPanel();
 		exitP.add(exit);
 				
-		JPanel leftP = new JPanel();		
+		
 		leftP.setVisible(true);
 		leftP.setLayout(new GridLayout(3,1));
 		leftP.add(carP);
 		leftP.add(checkboxP);
 		leftP.add(exitP);
-				
-		JPanel rightP = new JPanel();
-		//rightP.add(cash);
+		
+		/*
+		 * //*** right panel
+			JPanel rightP = new JPanel();
+			JLabel nameLabel;
+			JLabel phoneLabel;
+			JLabel taxLabel;
+			JLabel totalLabel;
+		 */
+		//***** right panel *******
+		sumP.add(taxLabel);
+		sumP.add(totalLabel);
+		TitledBorder border = new TitledBorder("Order Summary");
+		border.setTitleJustification(TitledBorder.CENTER);
+		border.setTitlePosition(TitledBorder.TOP);
+		rightP.setBorder(border);
 		rightP.setVisible(true);
+		rightP.add(orderP);
+		rightP.add(sumP);
+		rightP.add(subOrdP);
+		rightP.add(subP);
 		this.add(leftP);
 		this.add(rightP);
 		this.setVisible(true);
@@ -162,8 +187,15 @@ public class CarDealer extends JFrame implements TableModelListener, TableCellRe
 		//if the check box is selected, add the item to the selectedCar list
 		if(checked) {						
 			for(Car eachModel : carOnSale) {
-				if(eachModel.getModel() == selectedModel) {
+				if(eachModel.getModel() == selectedModel) {					
 					selectedCars.add(eachModel);
+					orderP.removeAll();
+					orderP.repaint();
+					for(Car eachSelected : selectedCars) {
+						orderP.add(new JLabel(eachSelected.getModel()+ "   $"+ eachSelected.getPrice()));
+						orderP.revalidate();
+						orderP.repaint();
+					}					
 				}				
 			}
 		}
@@ -171,6 +203,13 @@ public class CarDealer extends JFrame implements TableModelListener, TableCellRe
 			for(Car eachModel : carOnSale) {
 				if(eachModel.getModel() == selectedModel) {
 					selectedCars.remove(eachModel);
+					orderP.removeAll();
+					orderP.repaint();
+					for(Car eachSelected : selectedCars) {
+						orderP.add(new JLabel(eachSelected.getModel()+ "   $"+ eachSelected.getPrice()));						
+					}
+					orderP.revalidate();
+					orderP.repaint();
 				}				
 			}
 		}
@@ -190,7 +229,14 @@ public class CarDealer extends JFrame implements TableModelListener, TableCellRe
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JCheckBox selection = (JCheckBox)e.getSource();
+		if(selection.isSelected()) {
+			System.out.println(e.getActionCommand() + " selected!");
+		}
+		else {
+			System.out.println(e.getActionCommand() + " unselected!");
+		}
 		System.out.println(e.getActionCommand());
+		
 		System.out.println("selection" + selection);
 		
 	}
