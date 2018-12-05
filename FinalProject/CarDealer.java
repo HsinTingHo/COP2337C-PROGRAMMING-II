@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.List;
+import java.lang.Math;
 import java.awt.*;
 
 import javax.swing.*;
@@ -28,17 +29,20 @@ public class CarDealer extends JFrame{
 	private packagePanel pp = new packagePanel();
 	private tradeInPanel tp = new tradeInPanel();
 	private financialPanel fp = new financialPanel();
-	
-	public CarDealer() {
+	private JPanel up, down;
+	private Customer customer;
+	public CarDealer(Customer c) {
+			this.customer = c;
+			System.out.println(c.getAccNum());
 	        // Display a title.
 	        setTitle("Car Dealer");
 	        setSize(720, 500);
 	        // Specify an action for the close button.
 	        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+	        
 	        // Create a BorderLayout manager.
 	        setLayout(new BorderLayout());
-	      
+	        setLocationRelativeTo(null);
 	        JTable t = new JTable(new CarTableModel());			
 		    //allow multiple rows selection
 		    t.setRowSelectionAllowed(true);		
@@ -64,11 +68,20 @@ public class CarDealer extends JFrame{
 				System.out.println(car.getKey() + car.getValue());
 				carOnSale.add(newCar);
 			}
-	        add(carTablePanel, BorderLayout.NORTH);
-	        add(pp, BorderLayout.WEST);
-	        add(tp, BorderLayout.CENTER);
-	        add(fp, BorderLayout.EAST);
-	        add(buitButtonPanel(), BorderLayout.SOUTH);
+			
+	        
+	        
+	        up = new JPanel(new GridLayout(2,1));	        
+	        up.add(builtCustomerPanel(c));
+	        up.add(carTablePanel);
+					
+			add(up, BorderLayout.NORTH);
+			add(pp, BorderLayout.WEST);
+			add(tp, BorderLayout.CENTER);
+			add(fp, BorderLayout.EAST);
+			add(buitButtonPanel(), BorderLayout.SOUTH);
+			
+			
 	        setVisible(true);
 	      
 	}
@@ -93,10 +106,30 @@ public class CarDealer extends JFrame{
 		JButton exit = new JButton("Exit");
 		
 		calculate.addActionListener(new CalcButtonListener());
+		exit.addActionListener(new ExitButton());
 		buttonP.add(calculate);
 		buttonP.add(exit);
 		
 		return buttonP;
+	}
+	
+	private JPanel builtCustomerPanel(Customer c) {
+		JPanel customerP = new JPanel(new GridLayout(4, 1));
+		JLabel name = new JLabel("Name: "+ c.getName());
+		name.setForeground(Color.BLUE);
+		JLabel add = new JLabel("Address: "+ c.getAdd());
+		add.setForeground(Color.BLUE);
+		JLabel phone = new JLabel("Phone: "+ c.getPhone());
+		phone.setForeground(Color.BLUE);
+		JLabel acc = new JLabel("Account#: "+ c.getAccNum());
+		acc.setForeground(Color.BLUE);
+		customerP.add(name);
+		customerP.add(add);
+		customerP.add(phone);
+		customerP.add(acc);
+		customerP.setVisible(true);
+		return customerP;
+		
 	}
 	
 	private class TableAction implements TableModelListener {
@@ -148,34 +181,86 @@ public class CarDealer extends JFrame{
 			financePrice = fp.getFinance(subTotal);
 			summary = getSummary();
 			System.out.println("Subtotal: "+ (financePrice));
-			JOptionPane.showMessageDialog(null, summary);
+			if(summary != null) {
+				JOptionPane.showMessageDialog(null, summary);
+			}
+			
+			
+		}		
+	}
+	private class ExitButton implements ActionListener{
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			ExitWindow exitW = new ExitWindow();
 			
 		}
 		
 	}
 	private String getSummary() {
+		boolean proceed = true;
 		String summary = "";
-		String car = "", pg = "", ti = "";
+		String car = "", pg = "", ti = "", subtotal = "", tax = "", total = "", line = "_______________________";
+		double sum = 0, calc = 0;
 		Map<String, Integer> pgs = pp.getSelectedPg();
 		String[] tis = tp.getTradeIn(); 
 		car += "Orders:\n";
-		for(Car each : selectedCars) {
-			car += each.getModel() + "                   $" + each.getPrice()+"\n";
-			
+		//if no car is selected, throw error window
+		if(selectedCars.size()>0) {
+			for(Car each : selectedCars) {
+				car += each.getModel() + "                   $" + each.getPrice()+"\n";								 
+				sum += each.getPrice(); 
+			}
+			car += "Tags                  $"+ (325 * selectedCars.size())+"\n";
+			sum += 325 * selectedCars.size();
 		}
-		pg+= "Packages:\n";
-		for(Entry<String, Integer> pg1 : pgs.entrySet()) {
-			pg += pg1.getKey() + "    $" + pg1.getValue()+"\n";
-			
+		else {
+			JOptionPane.showMessageDialog(null, "You forgot to select a car model.");
+			proceed = false;
 		}
-		ti+= "Trade In:\n";
-		ti = tis[0]+"                 -$"+tis[1]+"\n";
-		summary = car + pg + ti;
+		if(proceed) {
+			pg+= "\nPackages:\n";
+			for(Entry<String, Integer> pg1 : pgs.entrySet()) {
+				pg += pg1.getKey() + "    $" + pg1.getValue()+"\n";
+				sum += pg1.getValue();
+			}
+			ti+= "\nTrade In:\n";
+			try {		
+				ti += tis[0]+"                 -$"+tis[1]+"\n";
+				sum -= Integer.valueOf(tis[1]);
+			}
+			catch(Exception e) {
+				System.out.println("No trade In");
+				ti += "TradeIn Disc.   -$"+0+"\n";
+			}
+						
+			calc = fp.getFinance(sum);
+			if(sum - fp.getFinance(sum) == 750) {		
+				subtotal += "\nCash Disc.      -$" + 750+"\n";
+				subtotal += "Subtotal             $" + calc +"\n";
+				subtotal += line;
+			}
+			else {
+				subtotal += line;
+				subtotal += "\n7% Finance Applied\n";
+				subtotal += "Monthly Payment$" + Math.round(calc) +"\n";			
+			}
+			tax +="\nTax(6%)              $"+ Math.round((calc*0.06))+"\n";
+			total += "Total                  $"+Math.round((calc*1.06));
+			summary = car + pg + ti + subtotal+ tax +total;						
+		}
+		else {
+			summary = null;
+		}
 		return summary;
 	}
+
+
+/*
 	public static void main(String[] args){
+		CustomerWindow cInfo = new CustomerWindow();
 		CarDealer window1 = new CarDealer();
 	}
-	
+*/	
 
 }
